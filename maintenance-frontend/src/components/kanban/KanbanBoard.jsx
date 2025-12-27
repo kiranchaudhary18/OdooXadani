@@ -161,11 +161,12 @@
 
 
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useSidebar } from '../../context/SidebarContext';
 import { MAINTENANCE_STATUSES } from '../../utils/constants';
 import Badge from '../../components/ui/Badge';
+import { maintenanceAPI } from '../../api/maintenance.api';
 
 const KanbanCard = ({ card, index, status }) => {
   const getPriorityIcon = (priority) => {
@@ -173,12 +174,13 @@ const KanbanCard = ({ card, index, status }) => {
       High: '🔴',
       Medium: '🟡',
       Low: '🟢',
+      Critical: '🔴',
     };
     return icons[priority] || '⚪';
   };
 
   return (
-    <Draggable draggableId={`card-${card.id}`} index={index}>
+    <Draggable draggableId={`card-${card._id || card.id}`} index={index}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
@@ -200,19 +202,19 @@ const KanbanCard = ({ card, index, status }) => {
         >
           <div className="flex items-start justify-between mb-2">
             <h4 className="font-semibold text-slate-900 text-sm">
-              {card.equipment}
+              {card.equipment?.name || card.equipment || card.subject || 'N/A'}
             </h4>
             <span className="text-lg">{getPriorityIcon(card.priority)}</span>
           </div>
 
           <p className="text-xs text-slate-600 mb-3">
-            {card.description}
+            {card.description || card.subject || 'No description'}
           </p>
 
           <div className="flex items-center justify-between">
-            <Badge variant="default">{card.type}</Badge>
+            <Badge variant="default">{card.type || 'N/A'}</Badge>
             <span className="text-xs text-slate-500">
-              {card.assignedTo}
+              {card.assignedTechnician?.name || card.assignedTechnician || 'Unassigned'}
             </span>
           </div>
         </div>
@@ -271,7 +273,7 @@ const KanbanColumn = ({ status, cards }) => {
           >
             {cards.map((card, index) => (
               <KanbanCard
-                key={card.id}
+                key={card._id || card.id || `card-${index}`}
                 card={card}
                 index={index}
                 status={status}
@@ -287,29 +289,62 @@ const KanbanColumn = ({ status, cards }) => {
 
 const KanbanBoard = () => {
   const { isSidebarOpen } = useSidebar();
-  const [cards, setCards] = React.useState({
-    [MAINTENANCE_STATUSES.NEW]: [
-      { id: 1, equipment: 'Pump A-01', type: 'Corrective', priority: 'High', description: 'Bearing noise detected', assignedTo: 'John Smith' },
-      { id: 2, equipment: 'Valve V-04', type: 'Preventive', priority: 'High', description: 'Scheduled maintenance', assignedTo: 'Emily Brown' },
-    ],
-    [MAINTENANCE_STATUSES.IN_PROGRESS]: [
-      { id: 3, equipment: 'Motor B-02', type: 'Preventive', priority: 'Medium', description: 'Oil change and inspection', assignedTo: 'Sarah Johnson' },
-      { id: 5, equipment: 'Bearing B-05', type: 'Corrective', priority: 'Medium', description: 'Replacement needed', assignedTo: 'John Smith' },
-    ],
-    [MAINTENANCE_STATUSES.REPAIRED]: [
-      { id: 4, equipment: 'Compressor C-03', type: 'Corrective', priority: 'Low', description: 'Seal replacement completed', assignedTo: 'Mike Davis' },
-    ],
+  const [cards, setCards] = useState({
+    [MAINTENANCE_STATUSES.NEW]: [],
+    [MAINTENANCE_STATUSES.IN_PROGRESS]: [],
+    [MAINTENANCE_STATUSES.REPAIRED]: [],
     [MAINTENANCE_STATUSES.SCRAP]: [],
   });
+  const [isLoading, setIsLoading] = useState(true);
 
-  const onDragEnd = (result) => {
-    const { source, destination } = result;
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        setIsLoading(true);
+        const response = await maintenanceAPI.getAll();
+        // Backend returns array directly
+        const requests = Array.isArray(response) ? response : (response.requests || response.data || []);
+        
+        // Group requests by status
+        const grouped = {
+          [MAINTENANCE_STATUSES.NEW]: [],
+          [MAINTENANCE_STATUSES.IN_PROGRESS]: [],
+          [MAINTENANCE_STATUSES.REPAIRED]: [],
+          [MAINTENANCE_STATUSES.SCRAP]: [],
+        };
+
+        requests.forEach((req) => {
+          const status = req.status || MAINTENANCE_STATUSES.NEW;
+          if (grouped[status]) {
+            grouped[status].push(req);
+          } else {
+            grouped[MAINTENANCE_STATUSES.NEW].push(req);
+          }
+        });
+
+        setCards(grouped);
+      } catch (error) {
+        console.error('Error fetching maintenance requests:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRequests();
+  }, []);
+
+  const onDragEnd = async (result) => {
+    const { source, destination, draggableId } = result;
     if (!destination) return;
     if (
       source.droppableId === destination.droppableId &&
       source.index === destination.index
     ) return;
 
+    const cardId = draggableId.replace('card-', '');
+    const newStatus = destination.droppableId;
+
+    // Optimistically update UI
     setCards((prev) => {
       const sourceCards = [...prev[source.droppableId]];
       const [moved] = sourceCards.splice(source.index, 1);
@@ -322,6 +357,32 @@ const KanbanBoard = () => {
         [destination.droppableId]: destCards,
       };
     });
+
+    // Update status on backend
+    try {
+      await maintenanceAPI.updateStatus(cardId, newStatus);
+    } catch (error) {
+      console.error('Error updating status:', error);
+      // Revert on error - reload data
+      maintenanceAPI.getAll().then(response => {
+        const requests = Array.isArray(response) ? response : (response.requests || response.data || []);
+        const grouped = {
+          [MAINTENANCE_STATUSES.NEW]: [],
+          [MAINTENANCE_STATUSES.IN_PROGRESS]: [],
+          [MAINTENANCE_STATUSES.REPAIRED]: [],
+          [MAINTENANCE_STATUSES.SCRAP]: [],
+        };
+        requests.forEach((req) => {
+          const status = req.status || MAINTENANCE_STATUSES.NEW;
+          if (grouped[status]) {
+            grouped[status].push(req);
+          }
+        });
+        setCards(grouped);
+      }).catch(err => {
+        console.error('Error reloading data:', err);
+      });
+    }
   };
 
   return (

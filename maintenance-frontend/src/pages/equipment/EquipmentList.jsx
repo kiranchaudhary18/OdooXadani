@@ -189,80 +189,51 @@
 
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Edit2, Trash2, Eye } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { useSidebar } from '../../context/SidebarContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { equipmentAPI } from '../../api/equipment.api';
+
 
 const EquipmentList = () => {
   const { isSidebarOpen } = useSidebar();
   const { user } = useAuth();
   const { theme } = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
+  const [equipment, setEquipment] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Check if user is admin (admin sab kar sakta hai)
+  // Check if user is admin or manager
   const isAdmin = user?.role === 'admin' || user?.role?.toLowerCase() === 'admin';
+  const isManager = user?.role === 'manager' || user?.role?.toLowerCase() === 'manager';
+  const canEdit = isAdmin || isManager;
 
-  const [equipment, setEquipment] = useState([
-    {
-      id: 1,
-      name: 'Pump A-01',
-      serialNumber: 'PMP-2024-001',
-      location: 'Building A - Floor 2',
-      status: 'Active',
-      lastMaintenance: '2024-12-15',
-      nextMaintenance: '2025-01-15',
-      type: 'Centrifugal Pump',
-    },
-    {
-      id: 2,
-      name: 'Motor B-02',
-      serialNumber: 'MOT-2024-002',
-      location: 'Building B - Floor 1',
-      status: 'Active',
-      lastMaintenance: '2024-12-10',
-      nextMaintenance: '2025-01-10',
-      type: 'Electric Motor',
-    },
-    {
-      id: 3,
-      name: 'Compressor C-03',
-      serialNumber: 'CMP-2024-003',
-      location: 'Building C - Basement',
-      status: 'Inactive',
-      lastMaintenance: '2024-11-20',
-      nextMaintenance: '2025-02-20',
-      type: 'Rotary Compressor',
-    },
-    {
-      id: 4,
-      name: 'Valve V-04',
-      serialNumber: 'VLV-2024-004',
-      location: 'Building A - Floor 3',
-      status: 'Active',
-      lastMaintenance: '2024-12-18',
-      nextMaintenance: '2025-01-18',
-      type: 'Control Valve',
-    },
-    {
-      id: 5,
-      name: 'Bearing B-05',
-      serialNumber: 'BRG-2024-005',
-      location: 'Building D - Floor 1',
-      status: 'Active',
-      lastMaintenance: '2024-12-05',
-      nextMaintenance: '2025-01-05',
-      type: 'Rolling Bearing',
-    },
-  ]);
+  useEffect(() => {
+    const fetchEquipment = async () => {
+      try {
+        setIsLoading(true);
+        const response = await equipmentAPI.getAll();
+        // Backend returns array directly
+        const equipmentList = Array.isArray(response) ? response : (response.equipment || response.data || []);
+        setEquipment(equipmentList);
+      } catch (error) {
+        console.error('Error fetching equipment:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEquipment();
+  }, []);
 
   const filteredEquipment = equipment.filter(
     (eq) =>
-      eq.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      eq.serialNumber.toLowerCase().includes(searchTerm.toLowerCase())
+      (eq.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (eq.serialNumber || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -281,7 +252,7 @@ const EquipmentList = () => {
             </p>
           </div>
 
-          {isAdmin && (
+          {canEdit && (
             <Link
               to="/equipment/create"
               style={{ backgroundColor: theme.primary }}
@@ -334,43 +305,49 @@ const EquipmentList = () => {
               </thead>
 
               <tbody className="divide-y divide-slate-200">
-                {filteredEquipment.length ? (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-8 text-center">
+                      <p className="text-slate-500">Loading equipment...</p>
+                    </td>
+                  </tr>
+                ) : filteredEquipment.length ? (
                   filteredEquipment.map((eq) => (
                     <tr
-                      key={eq.id}
+                      key={eq._id || eq.id || `eq-${Math.random()}`}
                       className="hover:bg-orange-50 transition-colors"
                     >
                       <td className="px-6 py-4 text-sm font-medium text-slate-900">
-                        {eq.name}
+                        {eq.name || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600 font-mono">
-                        {eq.serialNumber}
+                        {eq.serialNumber || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600">
-                        {eq.type}
+                        {eq.type || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600">
-                        {eq.location}
+                        {eq.location || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <Badge
-                          variant={eq.status === 'Active' ? 'success' : 'default'}
+                          variant={eq.status === 'Active' || eq.status === 'active' ? 'success' : 'default'}
                         >
-                          {eq.status}
+                          {eq.status || 'N/A'}
                         </Badge>
                       </td>
                       <td className="px-6 py-4">
-  <div className="flex items-center gap-2">
-    {/* View */}
-    <Link
-      to={`/equipment/${eq.id}`}
-      className="p-2 rounded-lg
-      text-slate-600 hover:bg-slate-100
-      transition-colors"
-      title="View Details"
-    >
-      <Eye size={16} />
-    </Link>
+                        <div className="flex items-center gap-2">
+                          {/* View */}
+                          <Link
+                            to={`/equipment/${eq._id || eq.id}`}
+                            className="p-2 rounded-lg
+                            text-slate-600 hover:bg-slate-100
+                            transition-colors"
+                            title="View Details"
+                          >
+                            <Eye size={16} />
+                          </Link>
 
     {isAdmin && (
       <>
@@ -385,19 +362,30 @@ const EquipmentList = () => {
           <Edit2 size={16} />
         </button>
 
-        {/* Delete */}
+        {/* Scrap */}
         <button
-          className="p-2 rounded-lg
-          text-red-600 hover:bg-red-50
-          transition-colors"
-          title="Delete"
-        >
-          <Trash2 size={16} />
-        </button>
-      </>
-    )}
-  </div>
-</td>
+          onClick={async () => {
+            if (window.confirm('Are you sure you want to scrap this equipment?')) {
+              try {
+                await equipmentAPI.scrap(eq._id || eq.id);
+                setEquipment(equipment.filter(e => (e._id || e.id) !== (eq._id || eq.id)));
+              } catch (error) {
+                console.error('Error scrapping equipment:', error);
+                alert('Failed to scrap equipment');
+              }
+            }
+          }}
+                                className="p-2 rounded-lg
+                                text-red-600 hover:bg-red-50
+                                transition-colors"
+                                title="Scrap"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
 
                     </tr>
                   ))

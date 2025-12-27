@@ -65,11 +65,11 @@ const AppRoutes = () => {
           }
         />
 
-        {/* Equipment Routes - Only Admin and Manager */}
+        {/* Equipment Routes - All authenticated users can view, only Admin/Manager can edit */}
         <Route
           path="/equipment"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'manager']}>
+            <ProtectedRoute>
               <EquipmentList />
             </ProtectedRoute>
           }
@@ -85,7 +85,7 @@ const AppRoutes = () => {
         <Route
           path="/equipment/:id"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'manager']}>
+            <ProtectedRoute>
               <EquipmentDetails />
             </ProtectedRoute>
           }

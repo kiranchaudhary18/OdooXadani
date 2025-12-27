@@ -1,26 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, X } from 'lucide-react';
 import { useSidebar } from '../../context/SidebarContext';
 import { useTheme } from '../../context/ThemeContext';
+import { teamsAPI } from '../../api/teams.api';
 
 const AddTeam = () => {
   const { isSidebarOpen } = useSidebar();
   const navigate = useNavigate();
   const { theme } = useTheme();
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState([]);
 
-  // Mock users data - Replace with API call
-  const [availableUsers] = useState([
-    { id: 1, name: 'John Smith', role: 'Technician' },
-    { id: 2, name: 'Sarah Johnson', role: 'Technician' },
-    { id: 3, name: 'Mike Davis', role: 'Senior Technician' },
-    { id: 4, name: 'Emily Brown', role: 'Technician' },
-    { id: 5, name: 'Robert Wilson', role: 'Team Lead' },
-    { id: 6, name: 'David Lee', role: 'Technician' },
-    { id: 7, name: 'Lisa Martinez', role: 'Technician' },
-    { id: 8, name: 'James Taylor', role: 'Senior Technician' },
-  ]);
+  useEffect(() => {
+    // Fetch all teams to get available users
+    const fetchUsers = async () => {
+      try {
+        const response = await teamsAPI.getAll();
+        const teams = response.teams || response.data || response || [];
+        const allUsers = [];
+        teams.forEach(team => {
+          if (team.members && Array.isArray(team.members)) {
+            team.members.forEach(member => {
+              if (!allUsers.find(u => (u._id || u.id) === (member._id || member.id))) {
+                allUsers.push(member);
+              }
+            });
+          }
+        });
+        setAvailableUsers(allUsers);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -41,9 +55,9 @@ const AddTeam = () => {
     if (value.trim()) {
       const filtered = availableUsers.filter(
         (user) =>
-          !formData.members.find((m) => m.id === user.id) &&
-          (user.name.toLowerCase().includes(value.toLowerCase()) ||
-            user.role.toLowerCase().includes(value.toLowerCase()))
+          !formData.members.find((m) => (m._id || m.id) === (user._id || user.id)) &&
+          ((user.name || '').toLowerCase().includes(value.toLowerCase()) ||
+            (user.role || '').toLowerCase().includes(value.toLowerCase()))
       );
       setFilteredUsers(filtered);
     } else {
@@ -52,7 +66,7 @@ const AddTeam = () => {
   };
 
   const addMember = (user) => {
-    if (!formData.members.find((m) => m.id === user.id)) {
+    if (!formData.members.find((m) => (m._id || m.id) === (user._id || user.id))) {
       setFormData((prev) => ({
         ...prev,
         members: [...prev.members, user],
@@ -65,7 +79,7 @@ const AddTeam = () => {
   const removeMember = (userId) => {
     setFormData((prev) => ({
       ...prev,
-      members: prev.members.filter((m) => m.id !== userId),
+      members: prev.members.filter((m) => (m._id || m.id) !== userId),
     }));
   };
 
@@ -79,20 +93,20 @@ const AddTeam = () => {
     }
 
     try {
-      // Mock API call - Replace with actual API endpoint
       const requestData = {
         name: formData.name,
         description: formData.description,
-        members: formData.members.map((m) => m.id),
+        members: formData.members.map((m) => m._id || m.id),
       };
-      console.log('Submitting team:', requestData);
+      
+      await teamsAPI.create(requestData);
       setIsSubmitted(true);
       setTimeout(() => {
         navigate('/teams');
       }, 2000);
     } catch (error) {
       console.error('Error creating team:', error);
-      alert('Failed to create team');
+      alert(error.response?.data?.message || 'Failed to create team');
     }
   };
 
@@ -199,14 +213,14 @@ const AddTeam = () => {
                       <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-300 rounded-lg shadow-lg z-10">
                         {filteredUsers.map((user) => (
                           <button
-                            key={user.id}
+                            key={user._id || user.id}
                             type="button"
                             onClick={() => addMember(user)}
                             className="w-full text-left px-4 py-3 hover:bg-orange-50
                             border-b border-slate-200 last:border-b-0 transition-colors"
                           >
-                            <div className="font-medium text-slate-900">{user.name}</div>
-                            <div className="text-sm text-slate-600">{user.role}</div>
+                            <div className="font-medium text-slate-900">{user.name || 'N/A'}</div>
+                            <div className="text-sm text-slate-600">{user.role || 'N/A'}</div>
                           </button>
                         ))}
                       </div>
@@ -223,7 +237,7 @@ const AddTeam = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {formData.members.map((member) => (
                         <div
-                          key={member.id}
+                          key={member._id || member.id}
                           style={{
                             backgroundColor: theme.light,
                             borderColor: theme.primary,
@@ -231,12 +245,12 @@ const AddTeam = () => {
                           className="flex items-center justify-between p-4 border rounded-lg"
                         >
                           <div>
-                            <div className="font-medium text-slate-900">{member.name}</div>
-                            <div className="text-sm text-slate-600">{member.role}</div>
+                            <div className="font-medium text-slate-900">{member.name || 'N/A'}</div>
+                            <div className="text-sm text-slate-600">{member.role || 'N/A'}</div>
                           </div>
                           <button
                             type="button"
-                            onClick={() => removeMember(member.id)}
+                            onClick={() => removeMember(member._id || member.id)}
                             style={{
                               color: theme.primary,
                             }}

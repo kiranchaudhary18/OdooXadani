@@ -208,14 +208,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const userRole = user?.role?.toLowerCase() || '';
   
   // Filter nav items based on user role
-  // Technician cannot see Equipment pages only
-  const isTehnician = userRole === 'technician';
+  const isUser = userRole === 'user';
   const filteredNavItems = NAV_ITEMS.filter(item => {
-    if (isTehnician) {
-      // Technician can see: Dashboard, Maintenance, Kanban, Calendar, Teams, Work Center
-      // Hide: Equipment only
-      return !['equipment'].includes(item.id);
+    if (isUser) {
+      // User can see: Dashboard, Maintenance (create/view own), Kanban (read-only)
+      // Hide: Equipment, Teams, Reports, Calendar
+      return !['equipment', 'teams', 'workcenter'].includes(item.id);
     }
+    // Admin, Manager, Technician can see all items
     return true;
   });
   

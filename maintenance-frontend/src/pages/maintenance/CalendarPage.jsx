@@ -150,14 +150,17 @@
 
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSidebar } from '../../context/SidebarContext';
 import Badge from '../../components/ui/Badge';
+import { maintenanceAPI } from '../../api/maintenance.api';
 
 const MaintenanceCalendar = () => {
   const { isSidebarOpen } = useSidebar();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [monthEvents, setMonthEvents] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
 
   const getDaysInMonth = (date) =>
     new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -171,11 +174,47 @@ const MaintenanceCalendar = () => {
   const nextMonth = () =>
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
 
-  const monthEvents = {
-    27: [{ id: 1, title: 'Pump A-01 Maintenance', type: 'preventive' }],
-    28: [{ id: 2, title: 'Motor B-02 Check', type: 'preventive' }],
-    30: [{ id: 3, title: 'Valve Inspection', type: 'corrective' }],
-  };
+  useEffect(() => {
+    const fetchCalendarEvents = async () => {
+      try {
+        setIsLoading(true);
+        const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        
+        const response = await maintenanceAPI.getCalendar({
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+        });
+
+        // Backend returns array directly
+        const events = Array.isArray(response) ? response : (response.requests || response.data || []);
+        const eventsByDay = {};
+
+        events.forEach((event) => {
+          if (event.scheduledDate) {
+            const date = new Date(event.scheduledDate);
+            const day = date.getDate();
+            if (!eventsByDay[day]) {
+              eventsByDay[day] = [];
+            }
+            eventsByDay[day].push({
+              id: event._id || event.id,
+              title: event.subject || event.equipment?.name || 'Maintenance',
+              type: event.type?.toLowerCase() || 'preventive',
+            });
+          }
+        });
+
+        setMonthEvents(eventsByDay);
+      } catch (error) {
+        console.error('Error fetching calendar events:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCalendarEvents();
+  }, [currentDate]);
 
   const days = [];
   const daysInMonth = getDaysInMonth(currentDate);

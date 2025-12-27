@@ -1,6 +1,11 @@
 const express = require("express");
 const app = express();
+const cors = require("cors");
 
+// CORS (apply before routes)
+
+
+app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {

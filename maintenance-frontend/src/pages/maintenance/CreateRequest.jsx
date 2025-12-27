@@ -286,12 +286,15 @@
 
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { useSidebar } from '../../context/SidebarContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { maintenanceAPI } from '../../api/maintenance.api';
+import { equipmentAPI } from '../../api/equipment.api';
+import { teamsAPI } from '../../api/teams.api';
 
 const CreateRequest = () => {
   const { isSidebarOpen } = useSidebar();
@@ -299,40 +302,51 @@ const CreateRequest = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [equipmentList, setEquipmentList] = useState([]);
+  const [teamsList, setTeamsList] = useState([]);
+  const [techniciansList, setTechniciansList] = useState([]);
 
-  // Mock data - Replace with API calls
-  const [equipmentList] = useState([
-    { id: 1, name: 'Pump A-01' },
-    { id: 2, name: 'Motor B-02' },
-    { id: 3, name: 'Compressor C-03' },
-    { id: 4, name: 'Valve V-04' },
-    { id: 5, name: 'Bearing B-05' },
-  ]);
-
-  const [teamsList] = useState([
-    { id: 1, name: 'Maintenance Team A' },
-    { id: 2, name: 'Maintenance Team B' },
-    { id: 3, name: 'Maintenance Team C' },
-  ]);
-
-  const [techniciansList] = useState([
-    { id: 1, name: 'John Smith' },
-    { id: 2, name: 'Sarah Johnson' },
-    { id: 3, name: 'Mike Davis' },
-    { id: 4, name: 'Emily Brown' },
-    { id: 5, name: 'Robert Wilson' },
-  ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [equipmentRes, teamsRes] = await Promise.all([
+          equipmentAPI.getAll(),
+          teamsAPI.getAll(),
+        ]);
+        
+        // Backend returns arrays directly
+        const equipmentData = Array.isArray(equipmentRes) ? equipmentRes : (equipmentRes.equipment || equipmentRes.data || []);
+        const teamsData = Array.isArray(teamsRes) ? teamsRes : (teamsRes.teams || teamsRes.data || []);
+        
+        setEquipmentList(equipmentData);
+        setTeamsList(teamsData);
+        
+        // Extract technicians from teams
+        const allTechnicians = [];
+        teamsData.forEach(team => {
+          if (team.members && Array.isArray(team.members)) {
+            team.members.forEach(member => {
+              if (!allTechnicians.find(t => (t._id || t.id) === (member._id || member.id))) {
+                allTechnicians.push(member);
+              }
+            });
+          }
+        });
+        setTechniciansList(allTechnicians);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const [formData, setFormData] = useState({
     subject: '',
     type: 'Corrective',
     equipment: '',
-    maintenanceTeam: '',
-    assignedTechnician: '',
-    status: 'New',
     scheduledDate: '',
-    durationHours: '',
     priority: 'Medium',
+    durationHours: '',
   });
 
   const handleChange = (e) => {
@@ -347,27 +361,30 @@ const CreateRequest = () => {
     if (
       !formData.subject ||
       !formData.type ||
-      !formData.equipment ||
-      !formData.maintenanceTeam
+      !formData.equipment
     ) {
-      alert('Please fill in all required fields');
+      alert('Please fill in all required fields (Subject, Type, Equipment)');
       return;
     }
 
     try {
-      // Mock API call - Replace with actual API endpoint
+      // Backend expects equipmentId and auto-fills maintenanceTeam and assignedTechnician
       const requestData = {
-        ...formData,
-        createdBy: user?.id,
+        subject: formData.subject,
+        type: formData.type,
+        equipmentId: formData.equipment,
+        scheduledDate: formData.scheduledDate || undefined,
+        priority: formData.priority || 'Medium',
       };
-      console.log('Submitting maintenance request:', requestData);
+      
+      await maintenanceAPI.create(requestData);
       setIsSubmitted(true);
       setTimeout(() => {
         navigate('/maintenance/kanban');
       }, 2000);
     } catch (error) {
       console.error('Error creating maintenance request:', error);
-      alert('Failed to create maintenance request');
+      alert(error.response?.data?.message || 'Failed to create maintenance request');
     }
   };
 
@@ -470,12 +487,12 @@ const CreateRequest = () => {
 
               <hr className="border-slate-200" />
 
-              {/* Equipment & Team Section */}
+              {/* Equipment Section */}
               <div>
-                <h2 className="text-xl font-semibold text-slate-900 mb-6">Equipment & Assignment</h2>
+                <h2 className="text-xl font-semibold text-slate-900 mb-6">Equipment</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Equipment */}
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
                       Equipment *
                     </label>
@@ -483,77 +500,20 @@ const CreateRequest = () => {
                       name="equipment"
                       value={formData.equipment}
                       onChange={handleChange}
+                      required
                       className="w-full px-4 py-2 border border-slate-300 rounded-lg
                       focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                     >
                       <option value="">Select equipment</option>
                       {equipmentList.map((eq) => (
-                        <option key={eq.id} value={eq.id}>
+                        <option key={eq._id || eq.id} value={eq._id || eq.id}>
                           {eq.name}
                         </option>
                       ))}
                     </select>
-                  </div>
-
-                  {/* Maintenance Team */}
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Maintenance Team *
-                    </label>
-                    <select
-                      name="maintenanceTeam"
-                      value={formData.maintenanceTeam}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg
-                      focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-                    >
-                      <option value="">Select maintenance team</option>
-                      {teamsList.map((team) => (
-                        <option key={team.id} value={team.id}>
-                          {team.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Assigned Technician */}
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Assigned Technician
-                    </label>
-                    <select
-                      name="assignedTechnician"
-                      value={formData.assignedTechnician}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg
-                      focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-                    >
-                      <option value="">Select technician (optional)</option>
-                      {techniciansList.map((tech) => (
-                        <option key={tech.id} value={tech.id}>
-                          {tech.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Status */}
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Status
-                    </label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg
-                      focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-                    >
-                      <option value="New">New (Default)</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="Repaired">Repaired</option>
-                      <option value="Scrap">Scrap</option>
-                    </select>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Maintenance team and technician will be auto-assigned based on equipment
+                    </p>
                   </div>
                 </div>
               </div>

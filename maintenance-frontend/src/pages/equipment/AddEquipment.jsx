@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { useSidebar } from '../../context/SidebarContext';
+
+import { equipmentAPI } from '../../api/equipment.api';
+import { teamsAPI } from '../../api/teams.api';
 import { useTheme } from '../../context/ThemeContext';
 
 const AddEquipment = () => {
@@ -9,17 +12,35 @@ const AddEquipment = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [teams, setTeams] = useState([
-    { id: 1, name: 'Maintenance Team A' },
-    { id: 2, name: 'Maintenance Team B' },
-    { id: 3, name: 'Maintenance Team C' },
-  ]);
-  const [technicians, setTechnicians] = useState([
-    { id: 1, name: 'John Smith' },
-    { id: 2, name: 'Sarah Johnson' },
-    { id: 3, name: 'Mike Davis' },
-    { id: 4, name: 'Emily Brown' },
-  ]);
+  const [teams, setTeams] = useState([]);
+  const [technicians, setTechnicians] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await teamsAPI.getAll();
+        // Backend returns array directly
+        const teamsList = Array.isArray(response) ? response : (response.teams || response.data || []);
+        setTeams(teamsList);
+        
+        // Extract technicians from teams
+        const allTechnicians = [];
+        teamsList.forEach(team => {
+          if (team.members && Array.isArray(team.members)) {
+            team.members.forEach(member => {
+              if (!allTechnicians.find(t => (t._id || t.id) === (member._id || member.id))) {
+                allTechnicians.push(member);
+              }
+            });
+          }
+        });
+        setTechnicians(allTechnicians);
+      } catch (error) {
+        console.error('Error fetching teams:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -58,15 +79,43 @@ const AddEquipment = () => {
     }
 
     try {
-      // Mock API call - Replace with actual API endpoint
-      console.log('Submitting equipment:', formData);
+      // Clean up form data - remove empty strings and only send valid data
+      const cleanedData = {
+        name: formData.name,
+        serialNumber: formData.serialNumber,
+        department: formData.department,
+        location: formData.location,
+        maintenanceTeam: formData.maintenanceTeam,
+        isScrapped: formData.isScrapped || false,
+      };
+
+      // Only add optional fields if they have values
+      if (formData.assignedToEmployee && formData.assignedToEmployee.trim()) {
+        cleanedData.assignedToEmployee = formData.assignedToEmployee.trim();
+      }
+
+      if (formData.purchaseDate) {
+        cleanedData.purchaseDate = formData.purchaseDate;
+      }
+
+      if (formData.warrantyExpiry) {
+        cleanedData.warrantyExpiry = formData.warrantyExpiry;
+      }
+
+      // Only add defaultTechnician if it's a valid non-empty value
+      if (formData.defaultTechnician && formData.defaultTechnician.trim() && formData.defaultTechnician !== '') {
+        cleanedData.defaultTechnician = formData.defaultTechnician.trim();
+      }
+
+      await equipmentAPI.create(cleanedData);
       setIsSubmitted(true);
       setTimeout(() => {
         navigate('/equipment');
       }, 2000);
     } catch (error) {
       console.error('Error creating equipment:', error);
-      alert('Failed to create equipment');
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to create equipment';
+      alert(errorMessage);
     }
   };
 
@@ -215,7 +264,7 @@ const AddEquipment = () => {
                     >
                       <option value="">Select a maintenance team</option>
                       {teams.map((team) => (
-                        <option key={team.id} value={team.id}>
+                        <option key={team._id || team.id} value={team._id || team.id}>
                           {team.name}
                         </option>
                       ))}
@@ -236,7 +285,7 @@ const AddEquipment = () => {
                     >
                       <option value="">Select a technician (optional)</option>
                       {technicians.map((tech) => (
-                        <option key={tech.id} value={tech.id}>
+                        <option key={tech._id || tech.id} value={tech._id || tech.id}>
                           {tech.name}
                         </option>
                       ))}
