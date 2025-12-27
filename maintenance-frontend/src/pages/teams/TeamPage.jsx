@@ -199,6 +199,7 @@
 
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Mail, Phone } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { useSidebar } from '../../context/SidebarContext';
@@ -288,14 +289,15 @@ const TeamPage = () => {
           </div>
 
           {isAdmin && (
-            <button
+            <Link
+              to="/teams/create"
               className="flex items-center gap-2 px-4 py-2
               bg-orange-600 text-white rounded-lg
               hover:bg-orange-700 transition font-medium"
             >
               <Plus size={20} />
-              Add Member
-            </button>
+              Add Team
+            </Link>
           )}
         </div>
 

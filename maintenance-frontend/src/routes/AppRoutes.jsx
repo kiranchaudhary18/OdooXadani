@@ -16,6 +16,7 @@ import Dashboard from '../pages/dashboard/Dashboard';
 // Equipment
 import EquipmentList from '../pages/equipment/EquipmentList';
 import EquipmentDetails from '../pages/equipment/EquipmentDetails';
+import AddEquipment from '../pages/equipment/AddEquipment';
 
 // Maintenance
 import CreateRequest from '../pages/maintenance/CreateRequest';
@@ -24,6 +25,7 @@ import CalendarPage from '../pages/maintenance/CalendarPage';
 
 // Teams
 import TeamPage from '../pages/teams/TeamPage';
+import AddTeam from '../pages/teams/AddTeam';
 
 // Work Center
 import WorkCenter from '../pages/workcenter/WorkCenter';
@@ -63,6 +65,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={['admin', 'manager']}>
               <EquipmentList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/equipment/create"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'manager']}>
+              <AddEquipment />
             </ProtectedRoute>
           }
         />
@@ -107,6 +117,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <TeamPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teams/create"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'manager']}>
+              <AddTeam />
             </ProtectedRoute>
           }
         />
