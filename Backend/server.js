@@ -3,6 +3,11 @@ require("./config/env");   // ✅ ADD THIS
 
 const app = require("./app");
 const connectDB = require("./config/db");
+const cors = require("cors");
+
+// Middleware
+app.use(cors());
+app.use(express.json());
 
 connectDB();
 
