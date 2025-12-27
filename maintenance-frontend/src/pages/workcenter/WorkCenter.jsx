@@ -226,10 +226,15 @@ import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, Users } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { useSidebar } from '../../context/SidebarContext';
+import { useAuth } from '../../context/AuthContext';
 
 const WorkCenter = () => {
   const { isSidebarOpen } = useSidebar();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Check if user is admin (admin sab kar sakta hai)
+  const isAdmin = user?.role === 'admin' || user?.role?.toLowerCase() === 'admin';
 
   const [workCenters, setWorkCenters] = useState([
     {
@@ -317,14 +322,16 @@ const WorkCenter = () => {
               Manage maintenance work facilities and capacity
             </p>
           </div>
-          <button
-            className="flex items-center gap-2 px-4 py-2
-            bg-orange-600 text-white rounded-lg
-            hover:bg-orange-700 transition font-medium"
-          >
-            <Plus size={20} />
-            Add Work Center
-          </button>
+          {isAdmin && (
+            <button
+              className="flex items-center gap-2 px-4 py-2
+              bg-orange-600 text-white rounded-lg
+              hover:bg-orange-700 transition font-medium"
+            >
+              <Plus size={20} />
+              Add Work Center
+            </button>
+          )}
         </div>
 
         {/* Statistics */}
@@ -445,18 +452,22 @@ const WorkCenter = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button
-                          className="p-2 rounded-lg
-                          text-orange-600 bg-orange-50 transition"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          className="p-2 rounded-lg
-                          text-red-600 bg-red-50 transition"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        {isAdmin && (
+                          <>
+                            <button
+                              className="p-2 rounded-lg
+                              text-orange-600 bg-orange-50 transition"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              className="p-2 rounded-lg
+                              text-red-600 bg-red-50 transition"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
