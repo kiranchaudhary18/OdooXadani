@@ -1,4 +1,4 @@
-const Equipment = require("../models/Equipment");
+const Equipment = require("../models/equipment");
 const MaintenanceRequest = require("../models/maintenanceRequests");
 
 /**

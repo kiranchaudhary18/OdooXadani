@@ -1,4 +1,4 @@
-const Equipment = require("../models/Equipment");
+const Equipment = require("../models/equipment");
 
 /**
  * Auto-fill maintenance data based on equipment
