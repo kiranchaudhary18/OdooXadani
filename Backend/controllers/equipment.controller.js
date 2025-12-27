@@ -9,7 +9,18 @@ exports.createEquipment = async (req, res) => {
     const equipment = await Equipment.create(req.body);
     res.status(201).json(equipment);
   } catch (error) {
-    res.status(500).json({ message: "Failed to create equipment" });
+    console.error("Equipment creation error:", error);
+    // Return more detailed error message
+    if (error.code === 11000) {
+      // Duplicate key error (unique constraint violation)
+      return res.status(400).json({ message: "Serial number already exists" });
+    }
+    if (error.name === "ValidationError") {
+      // Mongoose validation error
+      const errors = Object.values(error.errors).map(e => e.message).join(", ");
+      return res.status(400).json({ message: `Validation error: ${errors}` });
+    }
+    res.status(500).json({ message: error.message || "Failed to create equipment" });
   }
 };
 

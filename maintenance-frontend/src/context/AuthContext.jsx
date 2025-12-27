@@ -16,7 +16,12 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           const response = await authAPI.getMe();
-          setUser(response.user);
+          // Backend returns user directly, normalize to have id field
+          const userData = response.user || response;
+          setUser({
+            ...userData,
+            id: userData.id || userData._id,
+          });
           setIsAuthenticated(true);
         } catch (err) {
           localStorage.removeItem('authToken');
@@ -35,7 +40,12 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.login(email, password);
       localStorage.setItem('authToken', response.token);
-      setUser(response.user);
+      // Normalize user object to have id field
+      const userData = response.user || {};
+      setUser({
+        ...userData,
+        id: userData.id || userData._id,
+      });
       setIsAuthenticated(true);
       return response;
     } catch (err) {
@@ -50,13 +60,18 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await authAPI.signup(userData);
+      const response = await authAPI.register(userData);
       localStorage.setItem('authToken', response.token);
-      setUser(response.user);
+      // Normalize user object to have id field
+      const userResponse = response.user || {};
+      setUser({
+        ...userResponse,
+        id: userResponse.id || userResponse._id,
+      });
       setIsAuthenticated(true);
       return response;
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed');
+      setError(err.response?.data?.message || 'Registration failed');
       throw err;
     } finally {
       setIsLoading(false);

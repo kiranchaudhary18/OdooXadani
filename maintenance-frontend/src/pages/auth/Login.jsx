@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, Info } from 'lucide-react';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { authAPI } from '../../api/auth.api';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -11,8 +10,6 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-
-  const demoCredentials = authAPI.getDemoCredentials();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,21 +22,6 @@ const Login = () => {
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid email or password');
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async (demoEmail, demoPassword) => {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    setError('');
-    setIsLoading(true);
-
-    try {
-      await login(demoEmail, demoPassword);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Demo login failed');
       setIsLoading(false);
     }
   };
@@ -65,39 +47,6 @@ const Login = () => {
                 <p className="text-sm text-red-700">{error}</p>
               </div>
             )}
-
-            {/* Demo Info */}
-            <div className="p-4 rounded-lg bg-accent-50 border border-accent-200">
-              <div className="flex gap-3">
-                <Info className="text-accent-600 flex-shrink-0 mt-0.5" size={18} />
-                <div>
-                  <p className="text-xs font-semibold text-accent-900 uppercase mb-2">Demo Mode</p>
-                  <p className="text-xs text-accent-800 mb-3">Use demo credentials below until backend is ready:</p>
-                  <div className="space-y-2">
-                    {demoCredentials.map((cred, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handleDemoLogin(cred.email, cred.password)}
-                        className="w-full text-left p-2 bg-white rounded border border-accent-200 hover:bg-accent-100 transition-colors text-xs"
-                      >
-                        <p className="font-mono font-medium text-accent-900">{cred.email}</p>
-                        <p className="text-accent-700">Pass: {cred.password} ({cred.user.role})</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-slate-500">Or enter manually</span>
-              </div>
-            </div>
 
             {/* Email Field */}
             <div>

@@ -235,7 +235,7 @@
 
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AlertTriangle,
   Users,
@@ -248,52 +248,57 @@ import Badge from '../../components/ui/Badge';
 import { useSidebar } from '../../context/SidebarContext';
 import { MAINTENANCE_STATUSES } from '../../utils/constants';
 import { formatDate } from '../../utils/helpers';
+import { reportsAPI } from '../../api/reports.api';
+import { maintenanceAPI } from '../../api/maintenance.api';
 
 const Dashboard = () => {
   const { isSidebarOpen } = useSidebar();
   const [searchTerm, setSearchTerm] = useState('');
+  const [stats, setStats] = useState({
+    criticalEquipment: 0,
+    technicianLoad: 0,
+    openRequests: 0,
+    completionRate: 0,
+  });
+  const [requests, setRequests] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const stats = {
-    criticalEquipment: 12,
-    technicianLoad: 8,
-    openRequests: 24,
-    completionRate: 94,
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const [dashboardData, maintenanceData] = await Promise.all([
+          reportsAPI.getDashboard(),
+          maintenanceAPI.getAll({ limit: 10 }),
+        ]);
 
-  const requests = [
-    {
-      id: 1,
-      equipment: 'Pump A-01',
-      type: 'Corrective',
-      status: MAINTENANCE_STATUSES.NEW,
-      priority: 'High',
-      assignedTo: 'John Smith',
-      dueDate: '2024-12-28',
-    },
-    {
-      id: 2,
-      equipment: 'Motor B-02',
-      type: 'Preventive',
-      status: MAINTENANCE_STATUSES.IN_PROGRESS,
-      priority: 'Medium',
-      assignedTo: 'Sarah Johnson',
-      dueDate: '2024-12-29',
-    },
-    {
-      id: 3,
-      equipment: 'Compressor C-03',
-      type: 'Corrective',
-      status: MAINTENANCE_STATUSES.REPAIRED,
-      priority: 'Low',
-      assignedTo: 'Mike Davis',
-      dueDate: '2024-12-27',
-    },
-  ];
+        // Update stats
+        setStats({
+          criticalEquipment: dashboardData.overdueRequests || 0,
+          technicianLoad: 0, // This might need a separate endpoint
+          openRequests: dashboardData.openRequests || 0,
+          completionRate: dashboardData.totalRequests
+            ? Math.round((dashboardData.repairedRequests / dashboardData.totalRequests) * 100)
+            : 0,
+        });
+
+        // Update requests - backend returns array directly
+        const requestsList = Array.isArray(maintenanceData) ? maintenanceData : (maintenanceData.requests || maintenanceData.data || []);
+        setRequests(requestsList);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const filteredRequests = requests.filter(
     (req) =>
-      req.equipment.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      req.assignedTo.toLowerCase().includes(searchTerm.toLowerCase())
+      (req.equipment?.name || req.equipment || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (req.assignedTechnician?.name || req.assignedTechnician || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const priorityColor = {
@@ -432,28 +437,28 @@ const Dashboard = () => {
                 {filteredRequests.length ? (
                   filteredRequests.map((req) => (
                     <tr
-                      key={req.id}
+                      key={req._id || req.id || `req-${Math.random()}`}
                       className="hover:bg-orange-50 transition-colors cursor-pointer"
                     >
                       <td className="px-6 py-4 font-medium text-slate-900">
-                        {req.equipment}
+                        {req.equipment?.name || req.equipment || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-slate-600">
-                        {req.type}
+                        {req.type || 'N/A'}
                       </td>
                       <td className="px-6 py-4">
                         <Badge status={req.status} variant="status" />
                       </td>
                       <td
-                        className={`px-6 py-4 font-semibold ${priorityColor[req.priority]}`}
+                        className={`px-6 py-4 font-semibold ${priorityColor[req.priority] || 'text-slate-600'}`}
                       >
-                        {req.priority}
+                        {req.priority || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-slate-600">
-                        {req.assignedTo}
+                        {req.assignedTechnician?.name || req.assignedTechnician || 'Unassigned'}
                       </td>
                       <td className="px-6 py-4 text-slate-600">
-                        {formatDate(req.dueDate)}
+                        {req.scheduledDate ? formatDate(req.scheduledDate) : 'N/A'}
                       </td>
                     </tr>
                   ))

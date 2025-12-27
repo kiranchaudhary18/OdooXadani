@@ -17,12 +17,17 @@ export const equipmentAPI = {
   },
 
   update: async (id, equipmentData) => {
-    const response = await axiosInstance.put(`/equipment/${id}`, equipmentData);
+    const response = await axiosInstance.patch(`/equipment/${id}`, equipmentData);
     return response.data;
   },
 
-  delete: async (id) => {
-    const response = await axiosInstance.delete(`/equipment/${id}`);
+  scrap: async (id) => {
+    const response = await axiosInstance.patch(`/equipment/${id}/scrap`);
+    return response.data;
+  },
+
+  getMaintenance: async (id) => {
+    const response = await axiosInstance.get(`/equipment/${id}/maintenance`);
     return response.data;
   },
 };

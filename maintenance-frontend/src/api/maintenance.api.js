@@ -6,18 +6,13 @@ export const maintenanceAPI = {
     return response.data;
   },
 
-  getById: async (id) => {
-    const response = await axiosInstance.get(`/maintenance/${id}`);
-    return response.data;
-  },
-
   create: async (maintenanceData) => {
     const response = await axiosInstance.post('/maintenance', maintenanceData);
     return response.data;
   },
 
-  update: async (id, maintenanceData) => {
-    const response = await axiosInstance.put(`/maintenance/${id}`, maintenanceData);
+  assignTechnician: async (id, technicianId) => {
+    const response = await axiosInstance.patch(`/maintenance/${id}/assign`, { technicianId });
     return response.data;
   },
 
@@ -26,20 +21,13 @@ export const maintenanceAPI = {
     return response.data;
   },
 
-  delete: async (id) => {
-    const response = await axiosInstance.delete(`/maintenance/${id}`);
+  complete: async (id, completionData = {}) => {
+    const response = await axiosInstance.patch(`/maintenance/${id}/complete`, completionData);
     return response.data;
   },
 
-  getByStatus: async (status) => {
-    const response = await axiosInstance.get('/maintenance', { params: { status } });
-    return response.data;
-  },
-
-  getCalendarEvents: async (startDate, endDate) => {
-    const response = await axiosInstance.get('/maintenance/calendar', {
-      params: { startDate, endDate },
-    });
+  getCalendar: async (filters = {}) => {
+    const response = await axiosInstance.get('/maintenance/calendar', { params: filters });
     return response.data;
   },
 };

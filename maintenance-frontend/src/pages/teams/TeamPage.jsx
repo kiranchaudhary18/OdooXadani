@@ -198,78 +198,57 @@
 
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Mail, Phone } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { useSidebar } from '../../context/SidebarContext';
 import { useAuth } from '../../context/AuthContext';
+import { teamsAPI } from '../../api/teams.api';
 
 const TeamPage = () => {
   const { isSidebarOpen } = useSidebar();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const [teams, setTeams] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Check if user is admin (admin sab kar sakta hai)
+  // Check if user is admin or manager
   const isAdmin = user?.role === 'admin' || user?.role?.toLowerCase() === 'admin';
+  const isManager = user?.role === 'manager' || user?.role?.toLowerCase() === 'manager';
+  const canEdit = isAdmin || isManager;
 
-  const [team, setTeam] = useState([
-    {
-      id: 1,
-      name: 'John Smith',
-      email: 'john.smith@company.com',
-      phone: '+1 (555) 123-4567',
-      role: 'Senior Technician',
-      specialization: 'Pumps & Motors',
-      status: 'Active',
-      assignedTasks: 5,
-    },
-    {
-      id: 2,
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@company.com',
-      phone: '+1 (555) 234-5678',
-      role: 'Technician',
-      specialization: 'Hydraulic Systems',
-      status: 'Active',
-      assignedTasks: 3,
-    },
-    {
-      id: 3,
-      name: 'Mike Davis',
-      email: 'mike.davis@company.com',
-      phone: '+1 (555) 345-6789',
-      role: 'Maintenance Engineer',
-      specialization: 'Mechanical Systems',
-      status: 'Active',
-      assignedTasks: 7,
-    },
-    {
-      id: 4,
-      name: 'Emily Brown',
-      email: 'emily.brown@company.com',
-      phone: '+1 (555) 456-7890',
-      role: 'Technician',
-      specialization: 'Electrical Systems',
-      status: 'On Leave',
-      assignedTasks: 0,
-    },
-    {
-      id: 5,
-      name: 'Robert Wilson',
-      email: 'robert.wilson@company.com',
-      phone: '+1 (555) 567-8901',
-      role: 'Team Lead',
-      specialization: 'All Systems',
-      status: 'Active',
-      assignedTasks: 8,
-    },
-  ]);
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        setIsLoading(true);
+        const response = await teamsAPI.getAll();
+        // Backend returns array directly
+        const teamsList = Array.isArray(response) ? response : (response.teams || response.data || []);
+        setTeams(teamsList);
+      } catch (error) {
+        console.error('Error fetching teams:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const filteredTeam = team.filter(
+    fetchTeams();
+  }, []);
+
+  // Flatten team members for display
+  const allMembers = teams.flatMap(team => 
+    (team.members || []).map(member => ({
+      ...member,
+      teamName: team.name,
+      teamId: team._id || team.id,
+    }))
+  );
+
+  const filteredTeam = allMembers.filter(
     (member) =>
-      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchTerm.toLowerCase())
+      (member.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (member.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -288,7 +267,7 @@ const TeamPage = () => {
             </p>
           </div>
 
-          {isAdmin && (
+          {canEdit && (
             <Link
               to="/teams/create"
               className="flex items-center gap-2 px-4 py-2
@@ -308,25 +287,25 @@ const TeamPage = () => {
               Total Members
             </p>
             <p className="text-3xl font-bold text-orange-600">
-              {team.length}
+              {teams.length}
             </p>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <p className="text-sm font-medium text-slate-600 mb-1">
-              Available Now
+              Total Members
             </p>
             <p className="text-3xl font-bold text-green-600">
-              {team.filter((m) => m.status === 'Active').length}
+              {allMembers.length}
             </p>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <p className="text-sm font-medium text-slate-600 mb-1">
-              Total Load
+              Active Teams
             </p>
             <p className="text-3xl font-bold text-orange-600">
-              {team.reduce((sum, m) => sum + m.assignedTasks, 0)}
+              {teams.filter(t => t.status !== 'inactive').length}
             </p>
           </div>
         </div>
@@ -372,61 +351,81 @@ const TeamPage = () => {
               </thead>
 
               <tbody className="divide-y divide-slate-200">
-                {filteredTeam.map((member) => (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan="7" className="px-6 py-8 text-center">
+                      <p className="text-slate-500">Loading teams...</p>
+                    </td>
+                  </tr>
+                ) : filteredTeam.length ? (
+                  filteredTeam.map((member) => (
                   <tr
-                    key={member.id}
+                    key={member._id || member.id || `member-${Math.random()}`}
                     className="hover:bg-orange-50 transition-colors"
                   >
                     <td className="px-6 py-4 text-sm font-medium text-slate-900">
-                      {member.name}
+                      {member.name || 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
-                      {member.role}
+                      {member.role || 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
-                      {member.specialization}
+                      {member.teamName || 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold text-slate-900">
-                      {member.assignedTasks}
+                      {member.assignedTasks || 0}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <Badge
-                        variant={member.status === 'Active' ? 'success' : 'default'}
+                        variant={member.status === 'Active' || member.status === 'active' ? 'success' : 'default'}
                       >
-                        {member.status}
+                        {member.status || 'N/A'}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <div className="flex flex-col gap-1">
-                        <a
-                          href={`mailto:${member.email}`}
-                          className="text-orange-600 hover:underline flex items-center gap-1"
-                        >
-                          <Mail size={14} />
-                          {member.email}
-                        </a>
-                        <a
-                          href={`tel:${member.phone}`}
-                          className="text-orange-600 hover:underline flex items-center gap-1"
-                        >
-                          <Phone size={14} />
-                          {member.phone}
-                        </a>
+                        {member.email && (
+                          <a
+                            href={`mailto:${member.email}`}
+                            className="text-orange-600 hover:underline flex items-center gap-1"
+                          >
+                            <Mail size={14} />
+                            {member.email}
+                          </a>
+                        )}
+                        {member.phone && (
+                          <a
+                            href={`tel:${member.phone}`}
+                            className="text-orange-600 hover:underline flex items-center gap-1"
+                          >
+                            <Phone size={14} />
+                            {member.phone}
+                          </a>
+                        )}
+                        {!member.email && !member.phone && <span className="text-slate-500">N/A</span>}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        {isAdmin && (
+                        {canEdit && (
                           <>
                             <button
-                              className="p-2 rounded-lg
-                              text-orange-600 bg-orange-50 transition"
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button
+                              onClick={async () => {
+                                if (window.confirm('Remove this member from the team?')) {
+                                  try {
+                                    await teamsAPI.removeMember(member.teamId, member._id || member.id);
+                                    const response = await teamsAPI.getAll();
+                                    const teamsList = response.teams || response.data || response || [];
+                                    setTeams(teamsList);
+                                  } catch (error) {
+                                    console.error('Error removing member:', error);
+                                    alert('Failed to remove member');
+                                  }
+                                }
+                              }}
                               className="p-2 rounded-lg
                               text-red-600 bg-red-50 transition"
+                              title="Remove from team"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -435,7 +434,14 @@ const TeamPage = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="px-6 py-8 text-center">
+                      <p className="text-slate-500">No team members found</p>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

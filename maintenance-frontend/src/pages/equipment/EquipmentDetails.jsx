@@ -234,35 +234,62 @@
 
 
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, Zap } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { useSidebar } from '../../context/SidebarContext';
+import { equipmentAPI } from '../../api/equipment.api';
 
 const EquipmentDetails = () => {
   const { isSidebarOpen } = useSidebar();
   const { id } = useParams();
   const navigate = useNavigate();
+  const [equipment, setEquipment] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const equipment = {
-    id: 1,
-    name: 'Pump A-01',
-    serialNumber: 'PMP-2024-001',
-    location: 'Building A - Floor 2',
-    status: 'Active',
-    type: 'Centrifugal Pump',
-    manufacturer: 'Grundfos',
-    model: 'CR 15-10 A-F-A-EUBE',
-    yearManufactured: 2020,
-    capacity: '25 m³/h',
-    powerRating: '7.5 kW',
-    lastMaintenance: '2024-12-15',
-    nextMaintenance: '2025-01-15',
-    maintenanceInterval: 30,
-    notes:
-      'Regular maintenance performed. All bearings checked and lubricated.',
-  };
+  useEffect(() => {
+    const fetchEquipment = async () => {
+      try {
+        setIsLoading(true);
+        const response = await equipmentAPI.getById(id);
+        // Backend returns equipment directly
+        setEquipment(response);
+      } catch (error) {
+        console.error('Error fetching equipment details:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchEquipment();
+    }
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className={`min-h-screen pt-20 pb-10 transition-all duration-300
+        ${isSidebarOpen ? 'md:ml-64' : 'md:ml-20'}
+        bg-[#FAFAFA]`}>
+        <div className="px-4 md:px-8">
+          <p className="text-slate-600">Loading equipment details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!equipment) {
+    return (
+      <div className={`min-h-screen pt-20 pb-10 transition-all duration-300
+        ${isSidebarOpen ? 'md:ml-64' : 'md:ml-20'}
+        bg-[#FAFAFA]`}>
+        <div className="px-4 md:px-8">
+          <p className="text-slate-600">Equipment not found</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -323,7 +350,7 @@ const EquipmentDetails = () => {
                         {label}
                       </p>
                       <p className="text-lg font-semibold text-slate-900">
-                        {value}
+                        {value || 'N/A'}
                       </p>
                     </div>
                   ))}

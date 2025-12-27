@@ -1,9 +1,9 @@
 // Constants
 export const MAINTENANCE_STATUSES = {
-  NEW: 'new',
-  IN_PROGRESS: 'in-progress',
-  REPAIRED: 'repaired',
-  SCRAP: 'scrap',
+  NEW: 'New',
+  IN_PROGRESS: 'In Progress',
+  REPAIRED: 'Repaired',
+  SCRAP: 'Scrap',
 };
 
 export const MAINTENANCE_TYPES = {
