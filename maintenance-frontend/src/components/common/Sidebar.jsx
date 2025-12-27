@@ -188,6 +188,7 @@ import {
   X,
 } from 'lucide-react';
 import { NAV_ITEMS } from '../../utils/constants';
+import { useAuth } from '../../context/AuthContext';
 
 const iconMap = {
   LayoutDashboard,
@@ -201,12 +202,27 @@ const iconMap = {
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
+  const { user } = useAuth();
+  const userRole = user?.role?.toLowerCase() || '';
+  
+  // Filter nav items based on user role
+  // Technician cannot see Equipment pages only
+  const isTehnician = userRole === 'technician';
+  const filteredNavItems = NAV_ITEMS.filter(item => {
+    if (isTehnician) {
+      // Technician can see: Dashboard, Maintenance, Kanban, Calendar, Teams, Work Center
+      // Hide: Equipment only
+      return !['equipment'].includes(item.id);
+    }
+    return true;
+  });
+  
   const isActive = (path) => location.pathname.startsWith(path);
 
   /* ---------- Shared Nav Content (Mobile) ---------- */
   const navContent = (
     <div className="flex flex-col gap-2">
-      {NAV_ITEMS.map((item) => {
+      {filteredNavItems.map((item) => {
         const Icon = iconMap[item.icon];
         const active = isActive(item.path);
 
@@ -246,7 +262,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       >
         <nav className="flex-1 py-4">
           <div className="flex flex-col gap-2 px-3">
-            {NAV_ITEMS.map((item) => {
+            {filteredNavItems.map((item) => {
               const Icon = iconMap[item.icon];
               const active = isActive(item.path);
 
