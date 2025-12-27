@@ -57,11 +57,11 @@ const AppRoutes = () => {
           }
         />
 
-        {/* Equipment Routes */}
+        {/* Equipment Routes - Only Admin and Manager */}
         <Route
           path="/equipment"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'manager']}>
               <EquipmentList />
             </ProtectedRoute>
           }
@@ -69,7 +69,7 @@ const AppRoutes = () => {
         <Route
           path="/equipment/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'manager']}>
               <EquipmentDetails />
             </ProtectedRoute>
           }
