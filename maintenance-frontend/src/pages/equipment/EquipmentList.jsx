@@ -194,10 +194,15 @@ import { Link } from 'react-router-dom';
 import { Plus, Search, Edit2, Trash2, Eye } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { useSidebar } from '../../context/SidebarContext';
+import { useAuth } from '../../context/AuthContext';
 
 const EquipmentList = () => {
   const { isSidebarOpen } = useSidebar();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Check if user is admin (admin sab kar sakta hai)
+  const isAdmin = user?.role === 'admin' || user?.role?.toLowerCase() === 'admin';
 
   const [equipment, setEquipment] = useState([
     {
@@ -274,15 +279,17 @@ const EquipmentList = () => {
             </p>
           </div>
 
-          <Link
-            to="/equipment/create"
-            className="flex items-center gap-2 px-4 py-2
-            bg-orange-600 text-white rounded-lg
-            hover:bg-orange-700 transition-colors font-medium"
-          >
-            <Plus size={20} />
-            Add Equipment
-          </Link>
+          {isAdmin && (
+            <Link
+              to="/equipment/create"
+              className="flex items-center gap-2 px-4 py-2
+              bg-orange-600 text-white rounded-lg
+              hover:bg-orange-700 transition-colors font-medium"
+            >
+              <Plus size={20} />
+              Add Equipment
+            </Link>
+          )}
         </div>
 
         {/* Equipment Table */}
@@ -362,25 +369,29 @@ const EquipmentList = () => {
       <Eye size={16} />
     </Link>
 
-    {/* Edit */}
-    <button
-      className="p-2 rounded-lg
-      text-orange-600 hover:bg-orange-50
-      transition-colors"
-      title="Edit"
-    >
-      <Edit2 size={16} />
-    </button>
+    {isAdmin && (
+      <>
+        {/* Edit */}
+        <button
+          className="p-2 rounded-lg
+          text-orange-600 hover:bg-orange-50
+          transition-colors"
+          title="Edit"
+        >
+          <Edit2 size={16} />
+        </button>
 
-    {/* Delete */}
-    <button
-      className="p-2 rounded-lg
-      text-red-600 hover:bg-red-50
-      transition-colors"
-      title="Delete"
-    >
-      <Trash2 size={16} />
-    </button>
+        {/* Delete */}
+        <button
+          className="p-2 rounded-lg
+          text-red-600 hover:bg-red-50
+          transition-colors"
+          title="Delete"
+        >
+          <Trash2 size={16} />
+        </button>
+      </>
+    )}
   </div>
 </td>
 
