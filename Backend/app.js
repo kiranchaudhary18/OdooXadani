@@ -3,29 +3,9 @@ const app = express();
 const cors = require("cors");
 
 // CORS (apply before routes)
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5174",
-  process.env.CLIENT_ORIGIN,
-].filter(Boolean);
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-  optionsSuccessStatus: 204,
-};
 
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
-
+app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
