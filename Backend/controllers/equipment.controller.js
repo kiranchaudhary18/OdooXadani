@@ -1,5 +1,5 @@
-const Equipment = require("../models/Equipment");
-const MaintenanceRequest = require("../models/MaintenanceRequest");
+const Equipment = require("../models/equipment");
+const MaintenanceRequest = require("../models/maintenanceRequests");
 
 /**
  * CREATE EQUIPMENT

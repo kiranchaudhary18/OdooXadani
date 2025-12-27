@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 const maintenanceRequestSchema = new mongoose.Schema({
   subject: {
     type: String,
