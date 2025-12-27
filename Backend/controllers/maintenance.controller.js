@@ -1,5 +1,6 @@
-const MaintenanceRequest = require("../models/MaintenanceRequest");
-const Equipment = require("../models/Equipment");
+const MaintenanceRequest = require("../models/maintenanceRequests");
+const { autoFillFromEquipment } = require("../services/autoFill.service");
+const { isValidTransition } = require("../services/workflow.service");
 
 /**
  * CREATE MAINTENANCE REQUEST (AUTO-FILL)
@@ -8,24 +9,26 @@ exports.createRequest = async (req, res) => {
   try {
     const { subject, type, equipmentId, scheduledDate } = req.body;
 
-    const equipment = await Equipment.findById(equipmentId);
-    if (!equipment) {
-      return res.status(404).json({ message: "Equipment not found" });
+    if (!subject || !type || !equipmentId) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
+
+    const { maintenanceTeam, assignedTechnician } =
+      await autoFillFromEquipment(equipmentId);
 
     const request = await MaintenanceRequest.create({
       subject,
       type,
-      equipment: equipment._id,
-      maintenanceTeam: equipment.maintenanceTeam,
-      assignedTechnician: equipment.defaultTechnician,
+      equipment: equipmentId,
+      maintenanceTeam,
+      assignedTechnician,
       scheduledDate: type === "Preventive" ? scheduledDate : null,
       createdBy: req.user._id
     });
 
     res.status(201).json(request);
   } catch (error) {
-    res.status(500).json({ message: "Failed to create request" });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -86,7 +89,7 @@ exports.assignTechnician = async (req, res) => {
     }
 
     if (!request.maintenanceTeam.members.includes(technicianId)) {
-      return res.status(403).json({ message: "Technician not in team" });
+      return res.status(403).json({ message: "Technician not in assigned team" });
     }
 
     request.assignedTechnician = technicianId;
@@ -104,15 +107,16 @@ exports.assignTechnician = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const validStatuses = ["New", "In Progress", "Repaired", "Scrap"];
-
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ message: "Invalid status" });
-    }
 
     const request = await MaintenanceRequest.findById(req.params.id);
     if (!request) {
       return res.status(404).json({ message: "Request not found" });
+    }
+
+    if (!isValidTransition(request.status, status)) {
+      return res.status(400).json({
+        message: `Invalid transition from ${request.status} to ${status}`
+      });
     }
 
     request.status = status;
@@ -131,9 +135,19 @@ exports.completeRequest = async (req, res) => {
   try {
     const { durationHours } = req.body;
 
+    if (!durationHours) {
+      return res.status(400).json({ message: "Duration is required" });
+    }
+
     const request = await MaintenanceRequest.findById(req.params.id);
     if (!request) {
       return res.status(404).json({ message: "Request not found" });
+    }
+
+    if (!isValidTransition(request.status, "Repaired")) {
+      return res.status(400).json({
+        message: "Request must be In Progress before completion"
+      });
     }
 
     request.durationHours = durationHours;
