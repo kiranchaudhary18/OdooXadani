@@ -224,7 +224,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:text-red-50 bg-red-50 hover:bg-orange-500 transition-colors"
                 >
                   <LogOut size={16} />
                   Logout

@@ -30,6 +30,12 @@ import AddTeam from '../pages/teams/AddTeam';
 // Work Center
 import WorkCenter from '../pages/workcenter/WorkCenter';
 
+// Profile
+import UserProfile from '../pages/profile/UserProfile';
+
+// Settings
+import SettingsPage from '../pages/settings/SettingsPage';
+
 const AppRoutes = () => {
   const { isAuthenticated } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -135,6 +141,26 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <WorkCenter />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Profile Route */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <UserProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Settings Route */}
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
             </ProtectedRoute>
           }
         />
