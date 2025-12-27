@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Phone, MapPin, Calendar, Edit2, LogOut } from 'lucide-react';
 import { useSidebar } from '../../context/SidebarContext';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const UserProfile = () => {
   const { isSidebarOpen } = useSidebar();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const { user: currentUser, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -126,7 +128,8 @@ const UserProfile = () => {
         {/* Back Button */}
         <button
           onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-orange-500 hover:text-orange-700
+          style={{ color: theme.primary }}
+          className="flex items-center gap-2 hover:opacity-70
           font-medium transition"
         >
           <ArrowLeft size={20} />
@@ -138,8 +141,13 @@ const UserProfile = () => {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-center gap-6">
               {/* Avatar */}
-              <div className="w-24 h-24 rounded-full bg-orange-600 text-white
-              flex items-center justify-center font-bold text-4xl shadow-lg">
+              <div
+                style={{
+                  backgroundColor: theme.primary,
+                }}
+                className="w-24 h-24 rounded-full text-white
+              flex items-center justify-center font-bold text-4xl shadow-lg"
+              >
                 {userProfile.avatar}
               </div>
 
@@ -264,7 +272,11 @@ const UserProfile = () => {
             {userProfile.permissions.map((perm, idx) => (
               <span
                 key={idx}
-                className="px-3 py-1 rounded-full bg-orange-100 text-orange-700
+                style={{
+                  backgroundColor: theme.light,
+                  color: theme.primary,
+                }}
+                className="px-3 py-1 rounded-full
                 text-sm font-medium"
               >
                 {perm}

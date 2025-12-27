@@ -189,6 +189,7 @@ import {
 } from 'lucide-react';
 import { NAV_ITEMS } from '../../utils/constants';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const iconMap = {
   LayoutDashboard,
@@ -203,6 +204,7 @@ const iconMap = {
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
   const { user } = useAuth();
+  const { theme } = useTheme();
   const userRole = user?.role?.toLowerCase() || '';
   
   // Filter nav items based on user role
@@ -231,16 +233,18 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             key={item.id}
             to={item.path}
             onClick={() => setIsOpen(false)}
+            style={active ? { backgroundColor: theme.light, color: theme.primary } : {}}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
               active
-                ? 'bg-orange-100 text-orange-700 shadow-sm'
+                ? 'shadow-sm'
                 : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
             {Icon && (
               <Icon
                 size={20}
-                className={active ? 'text-orange-600' : 'text-slate-500'}
+                style={active ? { color: theme.primary } : {}}
+                className={!active ? 'text-slate-500' : ''}
               />
             )}
             <span className="text-sm font-medium">{item.label}</span>
@@ -270,28 +274,30 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 <Link
                   key={item.id}
                   to={item.path}
+                  style={active ? { backgroundColor: theme.light, color: theme.primary } : {}}
                   className={`relative flex items-center gap-3 px-3 py-3 rounded-xl
                   transition-all duration-200 group
                   ${
                     active
-                      ? 'bg-orange-100 text-orange-700 shadow-sm'
+                      ? 'shadow-sm'
                       : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                   }`}
                   title={!isOpen ? item.label : ''}
                 >
                   {/* Active Indicator */}
                   {active && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-orange-600 rounded-r-md" />
+                    <span style={{ backgroundColor: theme.primary }} className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-md" />
                   )}
 
                   {/* Icon */}
                   {Icon && (
                     <Icon
                       size={20}
+                      style={active ? { color: theme.primary } : {}}
                       className={`flex-shrink-0 transition-colors ${
-                        active
-                          ? 'text-orange-600'
-                          : 'text-slate-500 group-hover:text-slate-900'
+                        !active
+                          ? 'text-slate-500 group-hover:text-slate-900'
+                          : ''
                       }`}
                     />
                   )}

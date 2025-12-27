@@ -195,10 +195,12 @@ import { Plus, Search, Edit2, Trash2, Eye } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { useSidebar } from '../../context/SidebarContext';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const EquipmentList = () => {
   const { isSidebarOpen } = useSidebar();
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   
   // Check if user is admin (admin sab kar sakta hai)
@@ -282,9 +284,10 @@ const EquipmentList = () => {
           {isAdmin && (
             <Link
               to="/equipment/create"
+              style={{ backgroundColor: theme.primary }}
               className="flex items-center gap-2 px-4 py-2
-              bg-orange-600 text-white rounded-lg
-              hover:bg-orange-700 transition-colors font-medium"
+              text-white rounded-lg
+              hover:opacity-90 transition-colors font-medium"
             >
               <Plus size={20} />
               Add Equipment
@@ -373,8 +376,9 @@ const EquipmentList = () => {
       <>
         {/* Edit */}
         <button
+          style={{ color: theme.primary }}
           className="p-2 rounded-lg
-          text-orange-600 hover:bg-orange-50
+          hover:opacity-70
           transition-colors"
           title="Edit"
         >

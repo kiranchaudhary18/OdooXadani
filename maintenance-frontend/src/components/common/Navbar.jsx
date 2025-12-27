@@ -108,40 +108,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { LogOut, User, Settings, Menu, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const Navbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const { user, logout } = useAuth();
+  const { theme } = useTheme();
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
-
-  const getRoleColors = (role) => {
-    const roleMap = {
-      admin: {
-        bg: 'bg-orange-600',
-        badge: 'bg-orange-100 text-orange-700'
-      },
-      manager: {
-        bg: 'bg-slate-700',
-        badge: 'bg-slate-100 text-slate-700'
-      },
-      technician: {
-        bg: 'bg-emerald-600',
-        badge: 'bg-emerald-100 text-emerald-700'
-      },
-      engineer: {
-        bg: 'bg-indigo-600',
-        badge: 'bg-indigo-100 text-indigo-700'
-      },
-    };
-
-    return (
-      roleMap[role?.toLowerCase()] || {
-        bg: 'bg-orange-600',
-        badge: 'bg-orange-100 text-orange-700'
-      }
-    );
-  };
-
-  const roleColors = getRoleColors(user?.role);
 
   const handleLogout = async () => {
     await logout();
@@ -163,7 +135,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
           </button>
 
           <Link to="/dashboard" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-orange-600 flex items-center justify-center">
+            <div style={{ backgroundColor: theme.primary }} className="w-10 h-10 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">M</span>
             </div>
             <div className="hidden sm:block">
@@ -182,10 +154,16 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
           <div className="relative">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all hover:shadow-md ${roleColors.badge}`}
+              style={{ 
+                backgroundColor: theme.light,
+                borderColor: theme.primary,
+                color: theme.primary 
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl border transition-all hover:shadow-md"
             >
               <div
-                className={`w-8 h-8 rounded-lg ${roleColors.bg} flex items-center justify-center text-white text-sm font-bold`}
+                style={{ backgroundColor: theme.primary }}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold"
               >
                 {user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </div>

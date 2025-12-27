@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bell, Lock, Moon, Globe, Volume2, Eye, Save } from 'lucide-react';
 import { useSidebar } from '../../context/SidebarContext';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const SettingsPage = () => {
   const { isSidebarOpen } = useSidebar();
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
+  const { themeColor, changeTheme, theme } = useTheme();
 
   // Settings state
   const [settings, setSettings] = useState({
@@ -24,7 +26,6 @@ const SettingsPage = () => {
     // Display
     darkMode: false,
     language: 'en',
-    theme: 'orange',
     
     // Sound
     soundEnabled: true,
@@ -60,18 +61,42 @@ const SettingsPage = () => {
     setTimeout(() => setSaveMessage(''), 3000);
   };
 
+  // Generate toggle styles based on theme
+  const getToggleStyle = () => {
+    return {
+      boxShadow: `inset 0 0 0 2px ${theme.light}`,
+    };
+  };
+
+  // Generate inline style for toggle with theme color
+  const getToggleCSSVariables = () => {
+    return `
+      .theme-toggle {
+        accent-color: ${theme.primary};
+      }
+      .theme-toggle:checked + div {
+        background-color: ${theme.primary} !important;
+      }
+      .theme-toggle:focus-visible + div {
+        box-shadow: 0 0 0 3px ${theme.light} !important;
+      }
+    `;
+  };
+
   return (
     <div
       className={`min-h-screen pt-20 pb-10 transition-all duration-300
       ${isSidebarOpen ? 'md:ml-64' : 'md:ml-20'}
       bg-[#FAFAFA]`}
     >
+      <style>{getToggleCSSVariables()}</style>
       <div className="px-4 md:px-8 space-y-6">
 
         {/* Back Button */}
         <button
           onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-orange-600 hover:text-orange-700
+          style={{ color: theme.primary }}
+          className="flex items-center gap-2 hover:opacity-80
           font-medium transition"
         >
           <ArrowLeft size={20} />
@@ -116,9 +141,9 @@ const SettingsPage = () => {
                   type="checkbox"
                   checked={settings.emailNotifications}
                   onChange={() => handleToggle('emailNotifications')}
-                  className="sr-only peer"
+                  className="sr-only peer theme-toggle"
                 />
-                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all" style={{ backgroundColor: settings.emailNotifications ? theme.primary : '#cbd5e1' }}></div>
               </label>
             </div>
 
@@ -133,9 +158,9 @@ const SettingsPage = () => {
                   type="checkbox"
                   checked={settings.pushNotifications}
                   onChange={() => handleToggle('pushNotifications')}
-                  className="sr-only peer"
+                  className="sr-only peer theme-toggle"
                 />
-                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all" style={{ backgroundColor: settings.pushNotifications ? theme.primary : '#cbd5e1' }}></div>
               </label>
             </div>
 
@@ -150,9 +175,9 @@ const SettingsPage = () => {
                   type="checkbox"
                   checked={settings.maintenanceAlerts}
                   onChange={() => handleToggle('maintenanceAlerts')}
-                  className="sr-only peer"
+                  className="sr-only peer theme-toggle"
                 />
-                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all" style={{ backgroundColor: settings.maintenanceAlerts ? theme.primary : '#cbd5e1' }}></div>
               </label>
             </div>
 
@@ -167,9 +192,9 @@ const SettingsPage = () => {
                   type="checkbox"
                   checked={settings.weeklyReport}
                   onChange={() => handleToggle('weeklyReport')}
-                  className="sr-only peer"
+                  className="sr-only peer theme-toggle"
                 />
-                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all" style={{ backgroundColor: settings.weeklyReport ? theme.primary : '#cbd5e1' }}></div>
               </label>
             </div>
           </div>
@@ -196,9 +221,9 @@ const SettingsPage = () => {
                   type="checkbox"
                   checked={settings.darkMode}
                   onChange={() => handleToggle('darkMode')}
-                  className="sr-only peer"
+                  className="sr-only peer theme-toggle"
                 />
-                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all" style={{ backgroundColor: settings.darkMode ? theme.primary : '#cbd5e1' }}></div>
               </label>
             </div>
 
@@ -210,13 +235,16 @@ const SettingsPage = () => {
               <select
                 value={settings.language}
                 onChange={(e) => handleSelectChange('language', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none
-                focus:ring-2 focus:ring-orange-500"
+                style={{ borderColor: theme.primary, boxShadow: `0 0 0 0px ${theme.light}` }}
+                className="w-full px-3 py-2 border rounded-lg outline-none
+                focus:ring-2"
+                onFocus={(e) => e.target.style.boxShadow = `0 0 0 3px ${theme.light}`}
+                onBlur={(e) => e.target.style.boxShadow = 'none'}
               >
                 <option value="en">English</option>
-                <option value="ar">Arabic</option>
+                <option value="ar">العربية</option>
                 <option value="so">Somali</option>
-                <option value="fr">French</option>
+                <option value="fr">Français</option>
               </select>
             </div>
 
@@ -229,13 +257,13 @@ const SettingsPage = () => {
                 {['orange', 'blue', 'green', 'purple'].map(color => (
                   <button
                     key={color}
-                    onClick={() => handleSelectChange('theme', color)}
+                    onClick={() => changeTheme(color)}
                     className={`w-10 h-10 rounded-lg transition-transform ${
                       color === 'orange' ? 'bg-orange-600' :
                       color === 'blue' ? 'bg-blue-600' :
                       color === 'green' ? 'bg-green-600' :
                       'bg-purple-600'
-                    } ${settings.theme === color ? 'ring-2 ring-offset-2 ring-slate-400 scale-110' : ''}`}
+                    } ${themeColor === color ? 'ring-2 ring-offset-2 ring-slate-400 scale-110' : ''}`}
                   />
                 ))}
               </div>
@@ -264,9 +292,9 @@ const SettingsPage = () => {
                   type="checkbox"
                   checked={settings.soundEnabled}
                   onChange={() => handleToggle('soundEnabled')}
-                  className="sr-only peer"
+                  className="sr-only peer theme-toggle"
                 />
-                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all" style={{ backgroundColor: settings.soundEnabled ? theme.primary : '#cbd5e1' }}></div>
               </label>
             </div>
 
@@ -285,8 +313,9 @@ const SettingsPage = () => {
                 value={settings.volume}
                 onChange={handleSliderChange}
                 disabled={!settings.soundEnabled}
+                style={{ accentColor: theme.primary }}
                 className="w-full h-2 bg-slate-300 rounded-lg outline-none
-                accent-orange-600 disabled:opacity-50"
+                disabled:opacity-50"
               />
             </div>
           </div>
@@ -313,9 +342,9 @@ const SettingsPage = () => {
                   type="checkbox"
                   checked={settings.twoFactorAuth}
                   onChange={() => handleToggle('twoFactorAuth')}
-                  className="sr-only peer"
+                  className="sr-only peer theme-toggle"
                 />
-                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all" style={{ backgroundColor: settings.twoFactorAuth ? theme.primary : '#cbd5e1' }}></div>
               </label>
             </div>
 
@@ -330,9 +359,9 @@ const SettingsPage = () => {
                   type="checkbox"
                   checked={settings.publicProfile}
                   onChange={() => handleToggle('publicProfile')}
-                  className="sr-only peer"
+                  className="sr-only peer theme-toggle"
                 />
-                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all" style={{ backgroundColor: settings.publicProfile ? theme.primary : '#cbd5e1' }}></div>
               </label>
             </div>
           </div>
@@ -342,8 +371,9 @@ const SettingsPage = () => {
         <div className="flex justify-end">
           <button
             onClick={handleSaveSettings}
+            style={{ backgroundColor: theme.primary }}
             className="flex items-center gap-2 px-6 py-3
-            bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition
+            text-white rounded-lg hover:opacity-90 transition
             font-medium shadow-md"
           >
             <Save size={20} />

@@ -239,9 +239,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, Zap } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { useSidebar } from '../../context/SidebarContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const EquipmentDetails = () => {
   const { isSidebarOpen } = useSidebar();
+  const { theme } = useTheme();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -276,14 +278,17 @@ const EquipmentDetails = () => {
         <div className="flex items-center justify-between flex-wrap gap-4">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold"
+            style={{ color: theme.primary }}
+            className="flex items-center gap-2 hover:opacity-70 font-semibold"
           >
             <ArrowLeft size={20} />
             Back
           </button>
 
-          <button className="px-5 py-2 rounded-lg font-medium text-sm
-          bg-orange-600 text-white shadow-md hover:bg-orange-700 transition">
+          <button
+            style={{ backgroundColor: theme.primary }}
+            className="px-5 py-2 rounded-lg font-medium text-sm
+          text-white shadow-md hover:opacity-90 transition">
             Create Maintenance Request
           </button>
         </div>
@@ -297,13 +302,13 @@ const EquipmentDetails = () => {
             {/* ===== Equipment Header Card ===== */}
             <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
 
-              <div className="bg-orange-600 p-6 text-white">
+              <div style={{ backgroundColor: theme.primary }} className="p-6 text-white">
                 <h1 className="text-3xl font-bold mb-2">{equipment.name}</h1>
 
                 <div className="flex items-center gap-4 flex-wrap">
                   <Badge variant="success">{equipment.status}</Badge>
-                  <span className="text-orange-100">{equipment.type}</span>
-                  <span className="font-mono text-orange-100">
+                  <span className="text-white opacity-80">{equipment.type}</span>
+                  <span className="font-mono text-white opacity-80">
                     {equipment.serialNumber}
                   </span>
                 </div>
@@ -346,7 +351,7 @@ const EquipmentDetails = () => {
                       Location
                     </p>
                     <div className="flex items-center gap-2 text-slate-900 font-medium">
-                      <MapPin size={18} className="text-orange-600" />
+                      <MapPin size={18} style={{ color: theme.primary }} />
                       {equipment.location}
                     </div>
                   </div>
@@ -364,7 +369,7 @@ const EquipmentDetails = () => {
               <div className="grid md:grid-cols-2 gap-4">
 
                 <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50">
-                  <Calendar className="text-orange-600" size={22} />
+                  <Calendar style={{ color: theme.primary }} size={22} />
                   <div>
                     <p className="text-xs font-semibold text-slate-500 uppercase">
                       Last Maintenance
@@ -375,11 +380,16 @@ const EquipmentDetails = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 p-4 rounded-xl
-                bg-orange-50 border border-orange-200">
-                  <Calendar className="text-orange-600" size={22} />
+                <div
+                  style={{
+                    backgroundColor: theme.light,
+                    borderColor: theme.primary,
+                  }}
+                  className="flex items-center gap-4 p-4 rounded-xl border"
+                >
+                  <Calendar style={{ color: theme.primary }} size={22} />
                   <div>
-                    <p className="text-xs font-semibold text-orange-600 uppercase">
+                    <p style={{ color: theme.primary }} className="text-xs font-semibold uppercase">
                       Next Maintenance
                     </p>
                     <p className="text-lg font-semibold text-slate-900">
@@ -392,7 +402,7 @@ const EquipmentDetails = () => {
                   <p className="text-sm font-semibold text-slate-700 mb-1">
                     Maintenance Interval
                   </p>
-                  <p className="text-3xl font-bold text-orange-600">
+                  <p style={{ color: theme.primary }} className="text-3xl font-bold">
                     {equipment.maintenanceInterval} days
                   </p>
                 </div>
@@ -420,14 +430,22 @@ const EquipmentDetails = () => {
               </h3>
 
               <div className="space-y-3">
-                <button className="w-full px-4 py-3 rounded-xl font-medium
-                bg-orange-600 text-white shadow-md hover:bg-orange-700 transition">
+                <button
+                  style={{ backgroundColor: theme.primary }}
+                  className="w-full px-4 py-3 rounded-xl font-medium
+                text-white shadow-md hover:opacity-90 transition"
+                >
                   Request Maintenance
                 </button>
 
-                <button className="w-full px-4 py-3 rounded-xl font-medium
-                border-2 border-orange-200 text-orange-600
-                hover:bg-orange-50 transition">
+                <button
+                  style={{
+                    borderColor: theme.primary,
+                    color: theme.primary,
+                  }}
+                  className="w-full px-4 py-3 rounded-xl font-medium
+                border-2 hover:opacity-70 transition"
+                >
                   View History
                 </button>
 
@@ -440,9 +458,15 @@ const EquipmentDetails = () => {
             </div>
 
             {/* Alert Card */}
-            <div className="bg-orange-50 rounded-2xl p-6 border border-orange-200 shadow">
+            <div
+              style={{
+                backgroundColor: theme.light,
+                borderColor: theme.primary,
+              }}
+              className="rounded-2xl p-6 border shadow"
+            >
               <div className="flex items-start gap-3">
-                <Zap className="text-orange-600 mt-1" size={22} />
+                <Zap style={{ color: theme.primary }} className="mt-1" size={22} />
                 <div>
                   <p className="font-semibold text-slate-900 mb-1">
                     Maintenance Due Soon

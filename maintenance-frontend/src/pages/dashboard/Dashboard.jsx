@@ -246,11 +246,13 @@ import {
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import { useSidebar } from '../../context/SidebarContext';
+import { useTheme } from '../../context/ThemeContext';
 import { MAINTENANCE_STATUSES } from '../../utils/constants';
 import { formatDate } from '../../utils/helpers';
 
 const Dashboard = () => {
   const { isSidebarOpen } = useSidebar();
+  const { theme } = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
 
   const stats = {
@@ -322,8 +324,12 @@ const Dashboard = () => {
           </div>
 
           <div
+            style={{ 
+              backgroundColor: theme.primary,
+              boxShadow: `0 10px 15px -3px ${theme.light}`
+            }}
             className="px-5 py-2 rounded-full text-sm font-semibold
-            bg-orange-600 text-white shadow-lg shadow-orange-600/30"
+            text-white shadow-lg"
           >
             Today: {new Date().toLocaleDateString()}
           </div>
@@ -385,8 +391,9 @@ const Dashboard = () => {
               </p>
             </div>
             <button
+              style={{ backgroundColor: theme.primary }}
               className="px-5 py-2 rounded-lg font-medium text-sm
-              bg-orange-600 text-white shadow-md hover:bg-orange-700 transition"
+              text-white shadow-md hover:opacity-90 transition"
             >
               View All
             </button>

@@ -204,10 +204,12 @@ import { Plus, Edit2, Trash2, Mail, Phone } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { useSidebar } from '../../context/SidebarContext';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const TeamPage = () => {
   const { isSidebarOpen } = useSidebar();
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   
   // Check if user is admin (admin sab kar sakta hai)
@@ -291,9 +293,10 @@ const TeamPage = () => {
           {isAdmin && (
             <Link
               to="/teams/create"
+              style={{ backgroundColor: theme.primary }}
               className="flex items-center gap-2 px-4 py-2
-              bg-orange-600 text-white rounded-lg
-              hover:bg-orange-700 transition font-medium"
+              text-white rounded-lg
+              hover:opacity-90 transition font-medium"
             >
               <Plus size={20} />
               Add Team
@@ -307,7 +310,7 @@ const TeamPage = () => {
             <p className="text-sm font-medium text-slate-600 mb-1">
               Total Members
             </p>
-            <p className="text-3xl font-bold text-orange-600">
+            <p style={{ color: theme.primary }} className="text-3xl font-bold">
               {team.length}
             </p>
           </div>
@@ -325,7 +328,7 @@ const TeamPage = () => {
             <p className="text-sm font-medium text-slate-600 mb-1">
               Total Load
             </p>
-            <p className="text-3xl font-bold text-orange-600">
+            <p style={{ color: theme.primary }} className="text-3xl font-bold">
               {team.reduce((sum, m) => sum + m.assignedTasks, 0)}
             </p>
           </div>
@@ -400,14 +403,16 @@ const TeamPage = () => {
                       <div className="flex flex-col gap-1">
                         <a
                           href={`mailto:${member.email}`}
-                          className="text-orange-600 hover:underline flex items-center gap-1"
+                          style={{ color: theme.primary }}
+                          className="hover:underline flex items-center gap-1"
                         >
                           <Mail size={14} />
                           {member.email}
                         </a>
                         <a
                           href={`tel:${member.phone}`}
-                          className="text-orange-600 hover:underline flex items-center gap-1"
+                          style={{ color: theme.primary }}
+                          className="hover:underline flex items-center gap-1"
                         >
                           <Phone size={14} />
                           {member.phone}
@@ -419,8 +424,11 @@ const TeamPage = () => {
                         {isAdmin && (
                           <>
                             <button
-                              className="p-2 rounded-lg
-                              text-orange-600 bg-orange-50 transition"
+                              style={{
+                                color: theme.primary,
+                                backgroundColor: theme.light,
+                              }}
+                              className="p-2 rounded-lg transition"
                             >
                               <Edit2 size={16} />
                             </button>

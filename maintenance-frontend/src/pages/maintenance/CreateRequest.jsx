@@ -291,10 +291,12 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { useSidebar } from '../../context/SidebarContext';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const CreateRequest = () => {
   const { isSidebarOpen } = useSidebar();
   const { user } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -601,9 +603,10 @@ const CreateRequest = () => {
               <div className="flex gap-4 pt-6">
                 <button
                   type="submit"
+                  style={{ backgroundColor: theme.primary }}
                   className="flex items-center gap-2 px-6 py-3
-                  bg-orange-600 text-white rounded-lg
-                  hover:bg-orange-700 transition-colors font-medium"
+                  text-white rounded-lg
+                  hover:opacity-90 transition-colors font-medium"
                 >
                   <Plus size={20} />
                   Create Request

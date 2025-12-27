@@ -227,10 +227,12 @@ import { Plus, Edit2, Trash2, Users } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { useSidebar } from '../../context/SidebarContext';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const WorkCenter = () => {
   const { isSidebarOpen } = useSidebar();
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   
   // Check if user is admin (admin sab kar sakta hai)
@@ -324,9 +326,10 @@ const WorkCenter = () => {
           </div>
           {isAdmin && (
             <button
+              style={{ backgroundColor: theme.primary }}
               className="flex items-center gap-2 px-4 py-2
-              bg-orange-600 text-white rounded-lg
-              hover:bg-orange-700 transition font-medium"
+              text-white rounded-lg
+              hover:opacity-90 transition font-medium"
             >
               <Plus size={20} />
               Add Work Center
@@ -338,11 +341,11 @@ const WorkCenter = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <p className="text-sm font-medium text-slate-600 mb-1">Total Centers</p>
-            <p className="text-3xl font-bold text-orange-600">{workCenters.length}</p>
+            <p style={{ color: theme.primary }} className="text-3xl font-bold">{workCenters.length}</p>
           </div>
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <p className="text-sm font-medium text-slate-600 mb-1">Total Capacity</p>
-            <p className="text-3xl font-bold text-orange-600">
+            <p style={{ color: theme.primary }} className="text-3xl font-bold">
               {workCenters.reduce((sum, c) => sum + c.capacity, 0)}
             </p>
           </div>
@@ -354,7 +357,7 @@ const WorkCenter = () => {
           </div>
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <p className="text-sm font-medium text-slate-600 mb-1">Equipment Stored</p>
-            <p className="text-3xl font-bold text-orange-600">
+            <p style={{ color: theme.primary }} className="text-3xl font-bold">
               {workCenters.reduce((sum, c) => sum + c.equipmentCount, 0)}
             </p>
           </div>
@@ -421,10 +424,11 @@ const WorkCenter = () => {
                       <div className="flex items-center gap-2">
                         <div className="w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-orange-600"
                             style={{
                               width: `${(center.assignedTechnicians / center.capacity) * 100}%`,
+                              backgroundColor: theme.primary,
                             }}
+                            className="h-full"
                           />
                         </div>
                         <span
@@ -455,8 +459,11 @@ const WorkCenter = () => {
                         {isAdmin && (
                           <>
                             <button
-                              className="p-2 rounded-lg
-                              text-orange-600 bg-orange-50 transition"
+                              style={{
+                                color: theme.primary,
+                                backgroundColor: theme.light,
+                              }}
+                              className="p-2 rounded-lg transition"
                             >
                               <Edit2 size={16} />
                             </button>
