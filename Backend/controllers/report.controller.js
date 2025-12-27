@@ -1,4 +1,4 @@
-const MaintenanceRequest = require("../models/MaintenanceRequest");
+const MaintenanceRequest = require("../models/maintenanceRequests");
 
 /**
  * DASHBOARD STATS
